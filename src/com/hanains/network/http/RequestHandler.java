@@ -59,18 +59,13 @@ public class RequestHandler extends Thread {
 
 			//요청처리
 			String[] tokens = request.split(" ");
-			
-//			if("GET".equals(tokens[0])){
-//				responseStaticResouce(outputStream, tokens[1], tokens[2]);
-//			}else{
-//				response404Error(outputStream, tokens[2]);
-//			}
-			
-			responseStaticResouce(outputStream, tokens[1], tokens[2]);
-		
-		
-			
-		
+
+			if("GET".equals(tokens[0])){
+				responseStaticResource(outputStream, tokens[1], tokens[2]);
+			}else{
+				response400Error(outputStream, tokens[2]);
+			}
+
 
 
 		} catch( Exception ex ) {
@@ -97,61 +92,75 @@ public class RequestHandler extends Thread {
 
 	}
 
-	private void responseStaticResouce(OutputStream outputStream, String url, String protocol)
-			throws IOException	{
-		
-		//default html 처리
-		
-		
-		//file 객체 생성 
-		File file = new File("./webapp" + "./index.html");
-		Path path = file.toPath();
-		byte[] body = Files.readAllBytes(path);
+	//	private void responseStaticResouce(OutputStream outputStream, String url, String protocol)
+	//			throws IOException	{
+	//		
+	//		//default html 처리
+	//		
+	//		
+	//		//file 객체 생성 
+	//		File file = new File("./webapp" + "./index.html");
+	//		Path path = file.toPath();
+	//		byte[] body = Files.readAllBytes(path);
+	//
+	//		outputStream.write("HTTP/1.1 200 OK \r\n".getBytes("UTF-8"));
+	//		outputStream.write( "Content-Type:mimeType; charset=UTF-8\r\n".getBytes( "UTF-8" ) );
+	//		outputStream.write( "\r\n".getBytes() );
+	//		outputStream.write( body);
+	//		
+			//file 존재여부 체크 
+			
+	//	}
 
-		outputStream.write("HTTP/1.1 200 OK \r\n".getBytes("UTF-8"));
-		outputStream.write( "Content-Type:text/html; charset=UTF-8\r\n".getBytes( "UTF-8" ) );
-		outputStream.write( "\r\n".getBytes() );
-		outputStream.write( body);
+	private void responseStaticResource( OutputStream outputStream, String url, String protocol ) throws IOException {
+		if("/".equals(url)) url+="index.html";
+		File file = new File( "./webapp" + url );
+		if ( file.exists() == false ) {
+			response404Error( outputStream, protocol );
+			return;
+		}
+		Path path = file.toPath();
+		byte[] body = Files.readAllBytes( path ); 
+
+		String mimeType = Files.probeContentType( path );
+
+		outputStream.write("HTTP/1.1 200 OK\r\n".getBytes( "UTF-8" )); 
+		outputStream.write(("Content-Type:"+mimeType+"; charset=UTF-8\r\n").getBytes( "UTF-8" ) );
+		outputStream.write("\r\n".getBytes() );
+		outputStream.write(body );
 		
-		//file 존재여부 체크 
+		
 		if(file.exists()==false){
 			response404Error(outputStream,protocol);
 			return;
 		}	
-	}
-	
-	
-	private void fileRead(OutputStream outputStream, String url, String protocol)
-			throws IOException	{
-		
-		//default html 처리
-		
-		
-		//file 객체 생성 
-		File file = new File("./webapp/assets/images" + "./profile.jpg");
-		Path path = file.toPath();
-		byte[] body = Files.readAllBytes(path);
+	}  
 
-		outputStream.write("HTTP/1.1 200 OK \r\n".getBytes("UTF-8"));
-		outputStream.write( "Content-Type:image/jpg; charset=UTF-8\r\n".getBytes( "UTF-8" ) );
-		outputStream.write( "\r\n".getBytes() );
-		outputStream.write( body);
-		
-		//file 존재여부 체크 
-		if(file.exists()==false){
-			response404Error(outputStream,protocol);
-			return;
-		}	
-	}
-	
-	
+
+
+
+
 	private void response404Error(OutputStream outputStream,  String protocol)
 			throws IOException	{
-	
-		File file = new File("./webapp" + "./index.html");
+
+		File file = new File("./webapp/error/404.html");
 		Path path = file.toPath();
 		byte[] body = Files.readAllBytes(path);
-		outputStream.write((protocol + " 404 file not found\r\n").getBytes());
+		outputStream.write((protocol + " 404 file not found\r\\n").getBytes());
+		outputStream.write( " Content-Type:text/html\r\n".getBytes());
+		outputStream.write( "\r\n".getBytes() );
+		outputStream.write( body);
+	}
+
+
+
+	private void response400Error(OutputStream outputStream,  String protocol)
+			throws IOException	{
+
+		File file = new File("./webapp/error/400.html");
+		Path path = file.toPath();
+		byte[] body = Files.readAllBytes(path);
+		outputStream.write((protocol + " 400 file not found\r\\n").getBytes());
 		outputStream.write( " Content-Type:text/html\r\n".getBytes());
 		outputStream.write( "\r\n".getBytes() );
 		outputStream.write( body);
