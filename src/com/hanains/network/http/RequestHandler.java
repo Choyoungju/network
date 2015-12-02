@@ -115,6 +115,8 @@ public class RequestHandler extends Thread {
 	private void responseStaticResource( OutputStream outputStream, String url, String protocol ) throws IOException {
 		if("/".equals(url)) url+="index.html";
 		File file = new File( "./webapp" + url );
+		
+		//File file = new File( "./webapp/index.html" ); 해도 되겠지만 /로 했을때에 대한 홈 처리. url 부분을 /index.html 해도 될것.
 		if ( file.exists() == false ) {
 			response404Error( outputStream, protocol );
 			return;
