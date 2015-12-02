@@ -1,69 +1,82 @@
 package com.hanains.network.echo;
-
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class EchoClient {
-
+	
 	private static final String SERVER_IP = "192.168.1.13";
 	private static final int SERVER_PORT = 5050;
-
-	public static void main(String[] args){
-		Socket socket = null;
+	
+	public static void main( String[] args ) {
+		
 		InputStream inputStream = null;
 		OutputStream outputStream = null;
-
-
-
+		Socket socket = null;
+		
+		Scanner scanner = new Scanner( System.in );
+		
 		try {
-			//1. 소켓 생성
+			// 소켓 생성
 			socket = new Socket();
-
-			//2. 서버연결
-			socket.connect(new InetSocketAddress(SERVER_IP,SERVER_PORT));
-			System.out.println("[클라이언트] 서버연결 성공");
-
-			//3. IOStream 받아오기
+			
+			// 서버 연결
+			socket.connect( new InetSocketAddress( SERVER_IP, SERVER_PORT ) );
+			consolLog( "서버연결 성공" );
+			
+			// IOStream 받아오기
 			inputStream = socket.getInputStream();
 			outputStream = socket.getOutputStream();
-
-			//4. 쓰기읽기
-			String data = "Hello world";
-			outputStream.write(data.getBytes("UTF-8"));
-
-			byte[]buffer = new byte[256];
-			int readByteCount = inputStream.read(buffer);
-
-			data = new String(buffer, 0, readByteCount, "UTF-8");
-			System.out.println(">> " + data);
-
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.out.println("[클라이언트] 에러 :" + e);
-			e.printStackTrace();
-		}finally{
-			try{
-				if(inputStream !=null){
+			
+			while( true ) {
+				
+				// 키보드 입력 받기
+				System.out.print( ">>" );
+				String message = scanner.nextLine();
+				
+				// "exit"이면 프로그램 종료
+				if( "exit".equals( message ) ) {
+					break;
+				}
+				
+				// 소켓  쓰기/읽기
+				outputStream.write( message.getBytes( "UTF-8" ) );
+				outputStream.flush();
+				
+				byte[] buffer = new byte[ 128 ];
+				int readByteCount = inputStream.read( buffer );
+				
+				message = new String( buffer, 0, readByteCount, "UTF-8" );
+				System.out.println( "<<" + message );
+			}
+			
+		} catch( Exception ex ) {
+			consolLog( "에러:" + ex );
+		} finally {
+			try {
+				scanner.close();
+				
+				if( inputStream != null ) {
 					inputStream.close();
 				}
-
-
-				if(socket!=null && socket.isClosed()==false){
-					socket.close();
-				}
-
-				if(outputStream != null){
+				
+				if( outputStream != null ) {
 					outputStream.close();
 				}
 				
-			}catch(IOException ex){
+				if( socket != null && socket.isClosed() == false ) {
+						socket.close();
+				}
+				
+			} catch( Exception ex ) {
 				ex.printStackTrace();
 			}
-		}
+		}		
 	}
 	
-}
+	public static void consolLog( String message ) {
+		System.out.println(  "[클라이언트] " + message );
+	}
+} 

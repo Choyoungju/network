@@ -1,54 +1,70 @@
 package com.hanains.network.echo;
 
 import java.io.IOException;
-import java.net.InetAddress;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 
-public class EchoServerReceiveThread {
-	private static final int PORT = 5050;
+public class EchoServerReceiveThread extends Thread {
 	
-	public static void main(String args[] ){
+	private Socket socket;
+	
+	public EchoServerReceiveThread( Socket socket ) {
+		this.socket = socket;
+	}
+	
+	@Override
+	public void run() {
+		
+		InputStream inputStream = null;
+		OutputStream outputStream = null;
 		
 		try {
 			
-			
-//			//1. 서버소켓 생성
-//		//	serverSocket = new ServerSocket();
-//
-//			//2. 바인딩
-////			InetAddress inetAddress = InetAddress.getLocalHost();
-////			String localhost = inetAddress.getHostAddress();
-////
-////			serverSocket.bind(new InetSocketAddress(localhost,PORT));
-////			System.out.println("[서버] 바인딩 " + localhost  + " : " + PORT);
-////
-////
-////			//3. 연결 요청 대기(ACCEPT)
-////			Socket socket = serverSocket.accept();
-			
-			
-			
-			
-			
-			ServerSocket server = new ServerSocket(5050);
-			System.out.println("접속 대기요");
-			
-			while(true){
-				Socket socket = server.accept();
-				EchoThread echothread = new EchoThread(socket);
-				echothread.start();
+			//1. 리모트 호스트 정보 출력
+			InetSocketAddress inetSocketAddress = ( InetSocketAddress ) socket.getRemoteSocketAddress();
+			String remoteHostAddress = inetSocketAddress.getAddress().getHostAddress();
+			int remoteHostPort = inetSocketAddress.getPort();
+			EchoServer.consolLog( "연결됨 from " + remoteHostAddress + ":" + remoteHostPort );
+
+			//2. IOStream 받아오기
+			inputStream = socket.getInputStream();
+			outputStream = socket.getOutputStream();
+		
+			//3. 데이터 읽기
+			byte[] buffer = new byte[256];
+			while( true ) {
+				int readByteCount = inputStream.read( buffer );
+				if( readByteCount < 0 ) {
+					EchoServer.consolLog( "클라이언트로 부터 연결 끊김" );
+					break;
+				}
+				
+				String data = new String( buffer, 0, readByteCount );
+				EchoServer.consolLog( "수신 데이터:" + data );
+				
+				//4. 데이터 보내기
+				outputStream.write( data.getBytes( "UTF-8" ) );
+				outputStream.flush();
 			}
-			
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch( IOException ex ) {
+			EchoServer.consolLog( "에러:" + ex );
+		} finally {
+			try {
+				//5. 자원정리
+				if( inputStream != null ) {
+					inputStream.close();
+				}
+				if( outputStream != null ) {
+					outputStream.close();
+				}
+				if( socket.isClosed() == false ) {
+					socket.close();
+				}
+			} catch( IOException ex ) {
+				EchoServer.consolLog( "에러:" + ex );
+			}
 		}
-		
-		
 	}
-	
-	
 }
