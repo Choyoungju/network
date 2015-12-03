@@ -18,7 +18,7 @@ public class ChatServerThread extends Thread{
 	private Socket socket;
 	//List<Writer> listWriters = new ArrayList<Writer>();
 
-	List<PrintWriter> listPrintWriters = new ArrayList<PrintWriter>();
+	List<PrintWriter> listPrintWriters ;
 
 	public ChatServerThread(Socket socket, List<PrintWriter> listPrintWriters){
 		this.socket= socket;
@@ -143,10 +143,10 @@ public class ChatServerThread extends Thread{
 
 
 
-	private void doJoin(String nickName, PrintWriter printWriter){
+	private void doJoin(String nickname, PrintWriter printWriter){
 		this.nickname = nickname;
 
-		String data = nickName + "님이 참여하였습니다.";
+		String data = nickname + "님이 참여하였습니다.";
 		broadcast(data);
 
 
@@ -178,6 +178,7 @@ public class ChatServerThread extends Thread{
 
 	}
 
+	
 
 	public static void consolLog( String message ) {
 		System.out.println(  "[에코서버] " + message );
