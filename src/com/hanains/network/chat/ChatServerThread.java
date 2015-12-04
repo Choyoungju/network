@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ChatServerThread extends Thread{
 
@@ -19,10 +20,15 @@ public class ChatServerThread extends Thread{
 	//List<Writer> listWriters = new ArrayList<Writer>();
 
 	List<PrintWriter> listPrintWriters ;
+	
+	private Set set;
+	
 
-	public ChatServerThread(Socket socket, List<PrintWriter> listPrintWriters){
+
+	public ChatServerThread(Socket socket, List<PrintWriter> listPrintWriters, Set set){
 		this.socket= socket;
 		this.listPrintWriters = listPrintWriters;
+		this.set = set;
 	}
 
 
@@ -58,6 +64,7 @@ public class ChatServerThread extends Thread{
 
 				String[] tokens = request.split(":");
 				if("join".equals(tokens[0])){
+					
 					doJoin(tokens[1], printWriter);
 
 				}else if("message".equals(tokens[0])){
@@ -87,43 +94,7 @@ public class ChatServerThread extends Thread{
 		}
 
 	}
-//		//3. 요청 처리
-//		while(true){
-//			String request = null;
-//			try {
-//				request = bufferedReader.readLine();
-//			} catch (IOException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//			if(request == null){
-//				consolLog("클라이언트로부터 연결 끊김");
-//				break;
-//			}
-//
-//			//4.프로토콜 분석
-//
-//			String[] tokens = request.split(":");
-//			if("join".equals(tokens[0])){
-//				doJoin(tokens[1], printWriter);
-//
-//			}else if("message".equals(tokens[0])){
-//				doMessage(tokens[1]);
-//			}else if("quit".equals(tokens[0])){
-//				doQuit(printWriter);
-//				break;
-//
-//			}else{
-//				//Cghat.consolLog(" 에러:알수없는 요청(" + tokens[0] + ")" );
-//				ChatClient.consolLog("왜안됨?");
-//				ChatServer.consolLog("왜안됨?");
-//			}
-//
-//
-//		}
-//
-//	}
-//
+
 	private void broadcast(String data){
 		synchronized (listPrintWriters) {
 
@@ -144,8 +115,20 @@ public class ChatServerThread extends Thread{
 
 
 	private void doJoin(String nickname, PrintWriter printWriter){
-		this.nickname = nickname;
+		
+		
+		if(set.contains(nickname)){
+			System.out.println("join:fail:");
+			printWriter.println("join:fail:");
+			printWriter.flush();
+			return;
+		}
 
+		set.add(nickname);
+		this.nickname = nickname;
+		String da = (set.contains(nickname) + "가 추가됨");
+		broadcast(da);
+		
 		String data = nickname + "님이 참여하였습니다.";
 		broadcast(data);
 

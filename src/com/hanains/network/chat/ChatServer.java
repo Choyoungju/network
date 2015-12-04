@@ -8,8 +8,10 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 public class ChatServer {
 
@@ -25,8 +27,11 @@ public class ChatServer {
 		List<PrintWriter> listPrintWriters = new ArrayList<PrintWriter>();
 
 
+		Set set;
+		
 		try {
 
+			set = new HashSet();
 			
 			//1 소켓 생성
 			serverSocket = new ServerSocket();
@@ -40,7 +45,7 @@ public class ChatServer {
 			while( true ) {
 				Socket socket = serverSocket.accept();
 
-				Thread thread = new ChatServerThread( socket, listPrintWriters );
+				Thread thread = new ChatServerThread( socket, listPrintWriters,set );
 				thread.start();
 			}
 		} catch( IOException ex ) {
